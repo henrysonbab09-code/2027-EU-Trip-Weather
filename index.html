@@ -15,7 +15,7 @@
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; 
     }
     .card-gradient {
-      background: linear-gradient(145deg, rgba(30, 41, 59, 0.7) 0%, rgba(15, 23, 42, 0.9) 100%);
+      background: linear-gradient(145deg, rgba(30, 41, 59, 0.75) 0%, rgba(15, 23, 42, 0.95) 100%);
     }
   </style>
 </head>
@@ -24,7 +24,7 @@
   <!-- Toast Notification -->
   <div id="toast-notif" class="fixed top-5 left-1/2 -translate-x-1/2 bg-emerald-600 text-white text-xs font-semibold px-4 py-2.5 rounded-xl shadow-2xl transition-all duration-300 opacity-0 pointer-events-none flex items-center gap-2 z-50 border border-emerald-400/30 w-max max-w-[90%]">
     <span id="toast-icon">✅</span>
-    <span id="toast-msg">Data cuaca berhasil di-sync!</span>
+    <span id="toast-msg">Data cuaca harian berhasil di-sync!</span>
   </div>
 
   <!-- Header -->
@@ -33,11 +33,11 @@
       ❄️ WINTER TRIP • FEB 2027
     </div>
     <h1 class="text-2xl font-extrabold text-white tracking-tight">EuroTrip Weather</h1>
-    <p class="text-xs text-gray-400 mt-1">Milan • Prague • Vienna • Budapest</p>
+    <p class="text-xs text-gray-400 mt-1">Rincian Harian: Milan • Prague • Vienna • Budapest</p>
   </div>
 
   <!-- Weather Cards Container -->
-  <div id="weather-container" class="space-y-4"></div>
+  <div id="weather-container" class="space-y-5"></div>
 
   <!-- Sync Section -->
   <div class="mt-6 bg-gray-900/90 p-4 rounded-2xl border border-gray-800 shadow-xl">
@@ -46,12 +46,11 @@
       <span id="sync-text">Sync Live & Climatology Data</span>
     </button>
     <div id="sync-status" class="text-[11px] text-gray-400 text-center mt-2.5">
-      Baseline: Rata-rata Historis Februari (Open-Meteo API Ready)
+      Baseline: Rincian Harian Februari (Open-Meteo API Ready)
     </div>
   </div>
 
   <script>
-    // Register minimal Service Worker inline agar Chrome selalu mengizinkan Install App (PWA)
     if ('serviceWorker' in navigator) {
       const swCode = `
         self.addEventListener('install', (e) => self.skipWaiting());
@@ -61,96 +60,100 @@
       navigator.serviceWorker.register(URL.createObjectURL(blob)).catch(() => {});
     }
 
+    // Helper untuk memetakan WMO Weather Code dari Open-Meteo ke Icon & Deskripsi
+    function getWeatherInfo(code) {
+      if (code === 0) return { icon: '☀️', desc: 'Cerah' };
+      if (code === 1 || code === 2) return { icon: '⛅', desc: 'Cerah Berawan' };
+      if (code === 3) return { icon: '☁️', desc: 'Mendung' };
+      if (code === 45 || code === 48) return { icon: '🌫️', desc: 'Berkabut' };
+      if (code >= 51 && code <= 67) return { icon: '🌧️', desc: 'Hujan Ringan' };
+      if (code >= 71 && code <= 77) return { icon: '🌨️', desc: 'Salju' };
+      if (code >= 80 && code <= 82) return { icon: '🌦️', desc: 'Hujan Lokal' };
+      if (code >= 85 && code <= 86) return { icon: '❄️', desc: 'Hujan Salju' };
+      if (code >= 95) return { icon: '⛈️', desc: 'Badai Petir' };
+      return { icon: '⛅', desc: 'Berawan' };
+    }
+
+    // Data Itinerary Lengkap dengan Rincian Per Tanggal
     let itinerary = [
       {
         id: 'milan-1',
         city: 'Milan',
         country: 'Italia',
         flag: '🇮🇹',
-        dates: '7 – 11 Feb 2027',
-        startDate: '2027-02-07',
-        endDate: '2027-02-11',
+        dateRange: '7 – 11 Feb 2027',
         lat: 45.4642,
         lon: 9.1900,
-        dayTemp: 8,
-        nightTemp: 1,
-        sunset: '17:42',
-        condition: 'Cerah Berawan & Dingin',
-        icon: '⛅',
-        precipProb: '20%',
-        source: 'Historis Feb'
+        source: 'Historis Feb',
+        days: [
+          { date: '2027-02-07', label: 'Min, 7 Feb', dayTemp: 8, nightTemp: 1, sunset: '17:39', icon: '⛅', desc: 'Cerah Berawan', precip: '15%' },
+          { date: '2027-02-08', label: 'Sen, 8 Feb', dayTemp: 9, nightTemp: 2, sunset: '17:41', icon: '☀️', desc: 'Cerah Sejuk', precip: '10%' },
+          { date: '2027-02-09', label: 'Sel, 9 Feb', dayTemp: 7, nightTemp: 1, sunset: '17:42', icon: '☁️', desc: 'Berawan', precip: '25%' },
+          { date: '2027-02-10', label: 'Rab, 10 Feb', dayTemp: 8, nightTemp: 0, sunset: '17:44', icon: '⛅', desc: 'Cerah Berawan', precip: '20%' },
+          { date: '2027-02-11', label: 'Kam, 11 Feb', dayTemp: 9, nightTemp: 2, sunset: '17:45', icon: '☀️', desc: 'Cerah (Menuju Prague)', precip: '10%' }
+        ]
       },
       {
         id: 'prague',
         city: 'Prague',
         country: 'Ceko',
         flag: '🇨🇿',
-        dates: '11 – 14 Feb 2027',
-        startDate: '2027-02-11',
-        endDate: '2027-02-14',
+        dateRange: '11 – 14 Feb 2027',
         lat: 50.0755,
         lon: 14.4378,
-        dayTemp: 3,
-        nightTemp: -3,
-        sunset: '17:16',
-        condition: 'Berawan / Potensi Salju Ringan',
-        icon: '🌨️',
-        precipProb: '35%',
-        source: 'Historis Feb'
+        source: 'Historis Feb',
+        days: [
+          { date: '2027-02-11', label: 'Kam, 11 Feb', dayTemp: 3, nightTemp: -3, sunset: '17:13', icon: '☁️', desc: 'Mendung Dingin', precip: '30%' },
+          { date: '2027-02-12', label: 'Jum, 12 Feb', dayTemp: 2, nightTemp: -4, sunset: '17:15', icon: '🌨️', desc: 'Potensi Salju Ringan', precip: '45%' },
+          { date: '2027-02-13', label: 'Sab, 13 Feb', dayTemp: 4, nightTemp: -2, sunset: '17:17', icon: '⛅', desc: 'Cerah Berawan', precip: '20%' },
+          { date: '2027-02-14', label: 'Min, 14 Feb', dayTemp: 3, nightTemp: -3, sunset: '17:19', icon: '☁️', desc: 'Berawan (Menuju Vienna)', precip: '25%' }
+        ]
       },
       {
         id: 'vienna',
         city: 'Vienna',
         country: 'Austria',
         flag: '🇦🇹',
-        dates: '14 – 17 Feb 2027',
-        startDate: '2027-02-14',
-        endDate: '2027-02-17',
+        dateRange: '14 – 17 Feb 2027',
         lat: 48.2082,
         lon: 16.3738,
-        dayTemp: 5,
-        nightTemp: -1,
-        sunset: '17:19',
-        condition: 'Berawan & Berangin',
-        icon: '☁️',
-        precipProb: '25%',
-        source: 'Historis Feb'
+        source: 'Historis Feb',
+        days: [
+          { date: '2027-02-14', label: 'Min, 14 Feb', dayTemp: 5, nightTemp: -1, sunset: '17:17', icon: '⛅', desc: 'Cerah Berawan', precip: '20%' },
+          { date: '2027-02-15', label: 'Sen, 15 Feb', dayTemp: 4, nightTemp: -2, sunset: '17:19', icon: '☁️', desc: 'Berawan & Berangin', precip: '30%' },
+          { date: '2027-02-16', label: 'Sel, 16 Feb', dayTemp: 6, nightTemp: 0, sunset: '17:20', icon: '☀️', desc: 'Cerah Sejuk', precip: '15%' },
+          { date: '2027-02-17', label: 'Rab, 17 Feb', dayTemp: 5, nightTemp: -1, sunset: '17:22', icon: '⛅', desc: 'Berawan (Menuju Budapest)', precip: '20%' }
+        ]
       },
       {
         id: 'budapest',
         city: 'Budapest',
         country: 'Hungaria',
         flag: '🇭🇺',
-        dates: '17 – 20 Feb 2027',
-        startDate: '2027-02-17',
-        endDate: '2027-02-20',
+        dateRange: '17 – 20 Feb 2027',
         lat: 47.4979,
         lon: 19.0402,
-        dayTemp: 6,
-        nightTemp: -1,
-        sunset: '17:13',
-        condition: 'Cerah Berawan',
-        icon: '🌤️',
-        precipProb: '20%',
-        source: 'Historis Feb'
+        source: 'Historis Feb',
+        days: [
+          { date: '2027-02-17', label: 'Rab, 17 Feb', dayTemp: 6, nightTemp: -1, sunset: '17:11', icon: '⛅', desc: 'Cerah Berawan', precip: '20%' },
+          { date: '2027-02-18', label: 'Kam, 18 Feb', dayTemp: 7, nightTemp: 0, sunset: '17:12', icon: '☀️', desc: 'Cerah', precip: '10%' },
+          { date: '2027-02-19', label: 'Jum, 19 Feb', dayTemp: 5, nightTemp: -2, sunset: '17:14', icon: '🌧️', desc: 'Gerimis / Mendung', precip: '40%' },
+          { date: '2027-02-20', label: 'Sab, 20 Feb', dayTemp: 6, nightTemp: -1, sunset: '17:16', icon: '⛅', desc: 'Cerah Berawan (Ke Milan)', precip: '15%' }
+        ]
       },
       {
         id: 'milan-2',
         city: 'Milan',
         country: 'Italia',
         flag: '🇮🇹',
-        dates: '20 – 21 Feb 2027',
-        startDate: '2027-02-20',
-        endDate: '2027-02-21',
+        dateRange: '20 – 21 Feb 2027',
         lat: 45.4642,
         lon: 9.1900,
-        dayTemp: 10,
-        nightTemp: 2,
-        sunset: '17:58',
-        condition: 'Cerah Sejuk',
-        icon: '☀️',
-        precipProb: '15%',
-        source: 'Historis Feb'
+        source: 'Historis Feb',
+        days: [
+          { date: '2027-02-20', label: 'Sab, 20 Feb', dayTemp: 10, nightTemp: 2, sunset: '17:57', icon: '☀️', desc: 'Cerah Sejuk', precip: '10%' },
+          { date: '2027-02-21', label: 'Min, 21 Feb', dayTemp: 11, nightTemp: 3, sunset: '17:59', icon: '⛅', desc: 'Cerah Berawan (Pulang)', precip: '15%' }
+        ]
       }
     ];
 
@@ -162,48 +165,55 @@
         const card = document.createElement('div');
         card.className = 'card-gradient p-4 rounded-2xl border border-gray-800 shadow-lg transition-all duration-300';
         
+        // Render daftar baris per tanggal
+        let dailyRowsHtml = item.days.map(d => `
+          <div class="bg-black/40 border border-gray-800/80 rounded-xl p-3 flex items-center justify-between gap-2">
+            <!-- Kiri: Tanggal & Kondisi -->
+            <div class="flex items-center gap-2.5 min-w-0">
+              <div class="text-2xl shrink-0">${d.icon}</div>
+              <div class="truncate">
+                <div class="text-xs font-bold text-white">${d.label}</div>
+                <div class="text-[10px] text-gray-400 truncate">${d.desc} • 💧${d.precip}</div>
+              </div>
+            </div>
+
+            <!-- Kanan: Suhu Siang, Malam & Sunset -->
+            <div class="flex items-center gap-2.5 shrink-0 text-right">
+              <div>
+                <div class="text-[9px] text-gray-500 uppercase">Siang / Mlm</div>
+                <div class="text-xs font-extrabold">
+                  <span class="text-amber-400">${d.dayTemp}°</span>
+                  <span class="text-gray-600 mx-0.5">/</span>
+                  <span class="text-sky-400">${d.nightTemp}°</span>
+                </div>
+              </div>
+              <div class="border-l border-gray-800 pl-2.5">
+                <div class="text-[9px] text-gray-500 uppercase">Sunset</div>
+                <div class="text-xs font-bold text-orange-400">🌇 ${d.sunset}</div>
+              </div>
+            </div>
+          </div>
+        `).join('');
+
         card.innerHTML = `
-          <div class="flex justify-between items-start mb-3">
+          <!-- Header Kota -->
+          <div class="flex justify-between items-center mb-3 pb-2.5 border-b border-gray-800/80">
             <div>
               <div class="flex items-center gap-2">
                 <span class="text-lg">${item.flag}</span>
-                <h2 class="text-lg font-bold text-white">${item.city}</h2>
-                <span class="text-[10px] bg-gray-800 text-gray-300 px-2 py-0.5 rounded-md border border-gray-700">Stop #${index + 1}</span>
+                <h2 class="text-lg font-extrabold text-white">${item.city}</h2>
+                <span class="text-[10px] bg-blue-500/10 text-blue-400 px-2 py-0.5 rounded-md border border-blue-500/20 font-semibold">Stop #${index + 1}</span>
               </div>
-              <div class="text-xs text-blue-400 font-semibold mt-0.5">📅 ${item.dates}</div>
+              <div class="text-[11px] text-gray-400 mt-0.5">📅 ${item.dateRange}</div>
             </div>
             <div class="text-right">
-              <div class="text-3xl leading-none">${item.icon}</div>
-              <div class="text-[10px] text-gray-400 mt-1">${item.condition}</div>
+              <span class="text-[10px] bg-gray-800 text-gray-400 px-2 py-1 rounded-lg border border-gray-700">${item.source}</span>
             </div>
           </div>
 
-          <div class="grid grid-cols-3 gap-2 pt-2 border-t border-gray-800/80 text-center">
-            <div class="bg-black/40 p-2 rounded-xl border border-gray-800/60">
-              <div class="text-[10px] text-gray-400 flex items-center justify-center gap-1">
-                <span>☀️</span> Siang
-              </div>
-              <div class="text-base font-extrabold text-amber-400 mt-0.5">${item.dayTemp}°C</div>
-            </div>
-
-            <div class="bg-black/40 p-2 rounded-xl border border-gray-800/60">
-              <div class="text-[10px] text-gray-400 flex items-center justify-center gap-1">
-                <span>🌙</span> Malam
-              </div>
-              <div class="text-base font-extrabold text-sky-400 mt-0.5">${item.nightTemp}°C</div>
-            </div>
-
-            <div class="bg-black/40 p-2 rounded-xl border border-gray-800/60">
-              <div class="text-[10px] text-gray-400 flex items-center justify-center gap-1">
-                <span>🌇</span> Sunset
-              </div>
-              <div class="text-base font-extrabold text-orange-400 mt-0.5">${item.sunset}</div>
-            </div>
-          </div>
-
-          <div class="flex justify-between items-center mt-2.5 text-[10px] text-gray-500 px-1">
-            <span>💧 Peluang Hujan/Salju: <strong class="text-gray-300">${item.precipProb}</strong></span>
-            <span>Sumber: <strong class="text-gray-400">${item.source}</strong></span>
+          <!-- List Per Tanggal -->
+          <div class="space-y-2">
+            ${dailyRowsHtml}
           </div>
         `;
         container.appendChild(card);
@@ -234,7 +244,7 @@
       btn.disabled = true;
       btn.className = "w-full bg-gray-700 cursor-wait py-3.5 rounded-xl text-sm font-bold text-gray-400 flex items-center justify-center gap-2 transition-all duration-200";
       icon.className = "animate-spin";
-      text.innerText = "Fetching Open-Meteo API...";
+      text.innerText = "Syncing Data Harian...";
 
       const today = new Date();
       const targetStart = new Date('2027-02-07');
@@ -243,42 +253,51 @@
       try {
         for (let i = 0; i < itinerary.length; i++) {
           const item = itinerary[i];
+          const startDate = item.days[0].date;
+          const endDate = item.days[item.days.length - 1].date;
           
           if (diffDays <= 14 && diffDays >= -5) {
-            const url = `https://api.open-meteo.com/v1/forecast?latitude=${item.lat}&longitude=${item.lon}&daily=weather_code,temperature_2m_max,temperature_2m_min,sunset,precipitation_probability_max&timezone=auto&start_date=${item.startDate}&end_date=${item.endDate}`;
+            // Tarik Live Forecast Harian (H-14 sebelum trip)
+            const url = `https://api.open-meteo.com/v1/forecast?latitude=${item.lat}&longitude=${item.lon}&daily=weather_code,temperature_2m_max,temperature_2m_min,sunset,precipitation_probability_max&timezone=auto&start_date=${startDate}&end_date=${endDate}`;
             const res = await fetch(url);
             const data = await res.json();
 
-            if (data && data.daily) {
-              const avgMax = data.daily.temperature_2m_max.reduce((a, b) => a + b, 0) / data.daily.temperature_2m_max.length;
-              const avgMin = data.daily.temperature_2m_min.reduce((a, b) => a + b, 0) / data.daily.temperature_2m_min.length;
-              const sunsetRaw = data.daily.sunset[0];
-              const sunsetTime = sunsetRaw ? sunsetRaw.split('T')[1] : item.sunset;
-              const precip = data.daily.precipitation_probability_max ? Math.max(...data.daily.precipitation_probability_max) + '%' : item.precipProb;
-
-              item.dayTemp = Math.round(avgMax);
-              item.nightTemp = Math.round(avgMin);
-              item.sunset = sunsetTime;
-              item.precipProb = precip;
+            if (data && data.daily && data.daily.time) {
+              data.daily.time.forEach((t, idx) => {
+                if (item.days[idx]) {
+                  const wInfo = getWeatherInfo(data.daily.weather_code[idx]);
+                  item.days[idx].dayTemp = Math.round(data.daily.temperature_2m_max[idx]);
+                  item.days[idx].nightTemp = Math.round(data.daily.temperature_2m_min[idx]);
+                  item.days[idx].sunset = data.daily.sunset[idx] ? data.daily.sunset[idx].split('T')[1] : item.days[idx].sunset;
+                  item.days[idx].icon = wInfo.icon;
+                  item.days[idx].desc = wInfo.desc;
+                  if (data.daily.precipitation_probability_max) {
+                    item.days[idx].precip = data.daily.precipitation_probability_max[idx] + '%';
+                  }
+                }
+              });
               item.source = 'Live Forecast';
             }
           } else {
-            const pastStart = item.startDate.replace('2027', '2026');
-            const pastEnd = item.endDate.replace('2027', '2026');
-            const url = `https://archive-api.open-meteo.com/v1/archive?latitude=${item.lat}&longitude=${item.lon}&start_date=${pastStart}&end_date=${pastEnd}&daily=temperature_2m_max,temperature_2m_min,sunset&timezone=auto`;
+            // Tarik Data Historis Harian Per Tanggal dari Open-Meteo Archive (Feb 2026)
+            const pastStart = startDate.replace('2027', '2026');
+            const pastEnd = endDate.replace('2027', '2026');
+            const url = `https://archive-api.open-meteo.com/v1/archive?latitude=${item.lat}&longitude=${item.lon}&start_date=${pastStart}&end_date=${pastEnd}&daily=weather_code,temperature_2m_max,temperature_2m_min,sunset&timezone=auto`;
             
             const res = await fetch(url);
             const data = await res.json();
 
-            if (data && data.daily && data.daily.temperature_2m_max) {
-              const avgMax = data.daily.temperature_2m_max.reduce((a, b) => a + b, 0) / data.daily.temperature_2m_max.length;
-              const avgMin = data.daily.temperature_2m_min.reduce((a, b) => a + b, 0) / data.daily.temperature_2m_min.length;
-              const sunsetRaw = data.daily.sunset[0];
-              const sunsetTime = sunsetRaw ? sunsetRaw.split('T')[1] : item.sunset;
-
-              item.dayTemp = Math.round(avgMax);
-              item.nightTemp = Math.round(avgMin);
-              item.sunset = sunsetTime;
+            if (data && data.daily && data.daily.time) {
+              data.daily.time.forEach((t, idx) => {
+                if (item.days[idx]) {
+                  const wInfo = getWeatherInfo(data.daily.weather_code[idx]);
+                  item.days[idx].dayTemp = Math.round(data.daily.temperature_2m_max[idx]);
+                  item.days[idx].nightTemp = Math.round(data.daily.temperature_2m_min[idx]);
+                  item.days[idx].sunset = data.daily.sunset[idx] ? data.daily.sunset[idx].split('T')[1] : item.days[idx].sunset;
+                  item.days[idx].icon = wInfo.icon;
+                  item.days[idx].desc = wInfo.desc;
+                }
+              });
               item.source = 'Open-Meteo Archive';
             }
           }
@@ -290,10 +309,10 @@
         
         if (diffDays <= 14) {
           statusText.innerText = `Terakhir sync Live Forecast: Hari ini, ${timeStr} WIB`;
-          showToast('Live Forecast Feb 2027 berhasil diperbarui!', true);
+          showToast('Live Forecast harian Feb 2027 berhasil diperbarui!', true);
         } else {
           statusText.innerText = `Synced (Open-Meteo Archive): ${timeStr} WIB • Live forecast aktif H-14`;
-          showToast('Data cuaca historis & sunset berhasil di-sync!', true);
+          showToast('Rincian cuaca & sunset per tanggal berhasil di-sync!', true);
         }
 
       } catch (err) {
