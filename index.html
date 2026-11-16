@@ -51,14 +51,12 @@
   </div>
 
   <script>
-    if ('serviceWorker' in navigator) {
-      const swCode = `
-        self.addEventListener('install', (e) => self.skipWaiting());
-        self.addEventListener('fetch', (e) => {});
-      `;
-      const blob = new Blob([swCode], { type: 'application/javascript' });
-      navigator.serviceWorker.register(URL.createObjectURL(blob)).catch(() => {});
+        if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.js');
+      });
     }
+
 
     // Helper untuk memetakan WMO Weather Code dari Open-Meteo ke Icon & Deskripsi
     function getWeatherInfo(code) {
